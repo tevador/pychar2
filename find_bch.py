@@ -28,9 +28,19 @@ def viable(field_bits, length, deg, dist):
     bits_needed = (comb - 1).bit_length()
     return bits_needed <= field_bits * deg
 
+CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUV"
+
+def gen_to_str(data):
+    gen_str = ""
+    val = data["generator"]
+    for i in range(data["degree"]):
+        gen_str = CHARSET[int(val) % 32] + gen_str
+        val /= 32
+    return gen_str
+
 def default_report_fn(data):
     field = data["field"]
-    print("gen=[%s] degree=%i bch_length=%i bch_dist=%i bch_gen=[%s] bch_degree=%i bch_modulus=[%s] bch_c=%i" % (
+    print("gen=[%s] degree=%i bch_length=%i bch_dist=%i bch_gen=[%s] bch_degree=%i bch_modulus=[%s] bch_c=%i bch_str=%s" % (
               ",".join("%i" % v for v in pychar2.poly_list(field, data["generator"])),
               data["degree"],
               data["bch"]["length"],
@@ -38,7 +48,8 @@ def default_report_fn(data):
               ",".join("%i" % v for v in pychar2.poly_list(field, data["bch"]["generator"])),
               data["bch"]["degree"],
               ",".join("%i" % v for v in pychar2.poly_list(field, data["bch"]["modulus"])),
-              data["bch"]["c"]))
+              data["bch"]["c"],
+              gen_to_str(data["bch"])))
 
 def gen_bch(field, min_deg, dist, min_len, report_fn=default_report_fn, max_deg=None, min_ext_deg=1, max_ext_deg=None, max_len=None, pad_degree=False, dedup_iso=True, one_gen=False):
     """Generate BCH code generators and print them out.
@@ -209,4 +220,4 @@ def gen_bch(field, min_deg, dist, min_len, report_fn=default_report_fn, max_deg=
         print("# len=%i ext_deg=%i: %i alphas, %i classes, %i generators" % (length, ext_deg, len(alpha_pows), num_distinct_gens[0], len(gens)))
 
 F = pychar2.GF2Table(pychar2.GF2n(41))
-gen_bch(field=F, min_deg=2, dist=3, min_len=31, dedup_iso=False)
+gen_bch(field=F, min_deg=8, dist=5, min_len=200, dedup_iso=False)
